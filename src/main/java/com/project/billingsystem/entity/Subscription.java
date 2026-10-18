@@ -2,6 +2,7 @@ package com.project.billingsystem.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 import java.time.LocalDate;
 
@@ -10,8 +11,12 @@ public class Subscription {
     @Id
     private long id;
 
+    @ManyToOne
     private Customer customer;
+
+    @ManyToOne
     private Plan plan;
+
     private LocalDate startDate;
     private LocalDate nextRenewalDate;
     private LocalDate expiryDate;

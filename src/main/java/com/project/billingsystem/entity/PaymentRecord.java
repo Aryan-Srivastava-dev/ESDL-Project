@@ -2,6 +2,8 @@ package com.project.billingsystem.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +12,9 @@ public class PaymentRecord {
     @Id
     private long id;
 
+    @ManyToOne
     private Invoice invoice;
+
     private double amountPaid;
     private LocalDateTime paymentTimeStamp;
     private String status;

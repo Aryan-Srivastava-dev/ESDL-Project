@@ -2,6 +2,7 @@ package com.project.billingsystem.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 import java.time.LocalDate;
 
@@ -10,7 +11,9 @@ public class Invoice {
     @Id
     private long id;
 
+    @ManyToOne
     private Subscription subscription;
+
     private double amountDue;
     private LocalDate issueDate;
     private LocalDate dueDate;
