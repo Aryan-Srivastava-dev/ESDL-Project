@@ -1,9 +1,11 @@
 package com.project.billingsystem.service;
 
 import com.project.billingsystem.entity.Customer;
+import com.project.billingsystem.entity.Invoice;
 import com.project.billingsystem.entity.Plan;
 import com.project.billingsystem.entity.Subscription;
 import com.project.billingsystem.repository.CustomerRepository;
+import com.project.billingsystem.repository.InvoiceRepository;
 import com.project.billingsystem.repository.PlanRepository;
 import com.project.billingsystem.repository.SubscriptionRepository;
 import org.springframework.stereotype.Service;
@@ -15,11 +17,13 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final CustomerRepository customerRepository;
     private final PlanRepository planRepository;
+    private final InvoiceRepository invoiceRepository;
 
-    public SubscriptionService(SubscriptionRepository subscriptionRepository, CustomerRepository customerRepository, PlanRepository planRepository) {
+    public SubscriptionService(SubscriptionRepository subscriptionRepository, CustomerRepository customerRepository, PlanRepository planRepository, InvoiceRepository invoiceRepository) {
         this.subscriptionRepository = subscriptionRepository;
         this.customerRepository = customerRepository;
         this.planRepository = planRepository;
+        this.invoiceRepository = invoiceRepository;
     }
 
     public Subscription createSubscription(long customerId, long planId) {
@@ -42,7 +46,18 @@ public class SubscriptionService {
             subscription.setExpiryDate(LocalDate.now().plusYears(1));
         subscription.setStatus("ACTIVE");
 
-        return subscriptionRepository.save(subscription);
+        Subscription savedSubscription = subscriptionRepository.save(subscription);
+
+        Invoice invoice = new Invoice();
+        invoice.setSubscription(savedSubscription);
+        invoice.setAmountDue(plan.getPrice());
+        invoice.setIssueDate(LocalDate.now());
+        invoice.setDueDate(LocalDate.now().plusDays(7));
+        invoice.setStatus("PENDING");
+
+        invoiceRepository.save(invoice);
+
+        return savedSubscription;
     }
 
     public Subscription cancelSubscription(long subscriptionId) {
