@@ -4,6 +4,8 @@ import com.project.billingsystem.entity.Customer;
 import com.project.billingsystem.entity.Invoice;
 import com.project.billingsystem.entity.Plan;
 import com.project.billingsystem.entity.Subscription;
+import com.project.billingsystem.exception.BusinessRuleException;
+import com.project.billingsystem.exception.ResourceNotFoundException;
 import com.project.billingsystem.repository.CustomerRepository;
 import com.project.billingsystem.repository.InvoiceRepository;
 import com.project.billingsystem.repository.PlanRepository;
@@ -28,9 +30,13 @@ public class SubscriptionService {
 
     public Subscription createSubscription(long customerId, long planId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
         Plan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new RuntimeException("Plan not found with id: " + planId));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + planId));
+
+        if (subscriptionRepository.existsByCustomer_IdAndPlan_IdAndStatus(customerId, planId, "ACTIVE")) {
+            throw new BusinessRuleException("Customer already has an active subscription to this plan");
+        }
 
         Subscription subscription = new Subscription();
         subscription.setCustomer(customer);
@@ -62,7 +68,11 @@ public class SubscriptionService {
 
     public Subscription cancelSubscription(long subscriptionId) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + subscriptionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + subscriptionId));
+
+        if ("CANCELLED".equals(subscription.getStatus())) {
+            throw new BusinessRuleException("Subscription is already cancelled");
+        }
 
         subscription.setStatus("CANCELLED");
         return subscriptionRepository.save(subscription);
@@ -71,6 +81,14 @@ public class SubscriptionService {
     public Subscription renewSubscription(long subscriptionId) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new RuntimeException("Subscription not found with id: " + subscriptionId));
+
+        if ("CANCELLED".equals(subscription.getStatus())) {
+            throw new BusinessRuleException("Cannot renew a cancelled subscription");
+        }
+
+        if(LocalDate.now().isBefore(subscription.getNextRenewalDate())) {
+            throw new BusinessRuleException("Subscription cannot be renewed before its next renewal date: " + subscription.getNextRenewalDate());
+        }
 
         Plan plan = subscription.getPlan();
         LocalDate currentRenewal = subscription.getNextRenewalDate() != null ? subscription.getNextRenewalDate() : LocalDate.now();
@@ -83,6 +101,15 @@ public class SubscriptionService {
         else if(plan.getBillingInterval().equals("YEARLY"))
             subscription.setExpiryDate(currentRenewal.plusYears(1));
         subscription.setStatus("ACTIVE");
+
+        Invoice invoice = new Invoice();
+        invoice.setSubscription(subscription);
+        invoice.setAmountDue(plan.getPrice());
+        invoice.setIssueDate(LocalDate.now());
+        invoice.setDueDate(LocalDate.now().plusDays(7));
+        invoice.setStatus("PENDING");
+
+        invoiceRepository.save(invoice);
 
         return subscriptionRepository.save(subscription);
     }

@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 public class Plan {
@@ -12,7 +14,9 @@ public class Plan {
     private long id;
 
     private String name;
+    @PositiveOrZero(message = "Price cannot be negative")
     private double price;
+    @Pattern(regexp = "MONTHLY|YEARLY")
     private String billingInterval;
     private String description;
 

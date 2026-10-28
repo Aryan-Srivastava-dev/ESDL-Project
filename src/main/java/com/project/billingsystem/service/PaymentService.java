@@ -2,6 +2,8 @@ package com.project.billingsystem.service;
 
 import com.project.billingsystem.entity.Invoice;
 import com.project.billingsystem.entity.PaymentRecord;
+import com.project.billingsystem.exception.BusinessRuleException;
+import com.project.billingsystem.exception.ResourceNotFoundException;
 import com.project.billingsystem.repository.InvoiceRepository;
 import com.project.billingsystem.repository.PaymentRecordRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,15 @@ public class PaymentService {
 
     public PaymentRecord processPayment(long invoiceId, PaymentRecord paymentRecord) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found with id: " + invoiceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+
+        if ("PAID".equals(invoice.getStatus())) {
+            throw new BusinessRuleException("Invoice is already paid");
+        }
+
+        if (Double.compare(paymentRecord.getAmountPaid(), invoice.getAmountDue()) != 0) {
+            throw new BusinessRuleException("Payment amount must match the invoice amount due");
+        }
 
         paymentRecord.setInvoice(invoice);
         paymentRecord.setPaymentTimeStamp(LocalDateTime.now());

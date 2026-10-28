@@ -1,6 +1,7 @@
 package com.project.billingsystem.service;
 
 import com.project.billingsystem.entity.Plan;
+import com.project.billingsystem.exception.BusinessRuleException;
 import com.project.billingsystem.repository.PlanRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,7 @@ public class PlanService {
 
     public Plan createPlan(Plan plan) {
         if(plan.getPrice() < 0)
-            throw new RuntimeException("Price cannot be negative");
+            throw new BusinessRuleException("Price cannot be negative");
 
         return planRepository.save(plan);
     }

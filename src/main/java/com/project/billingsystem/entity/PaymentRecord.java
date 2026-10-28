@@ -1,6 +1,9 @@
 package com.project.billingsystem.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDateTime;
 
@@ -13,10 +16,13 @@ public class PaymentRecord {
     @ManyToOne
     private Invoice invoice;
 
+    @Positive
     private double amountPaid;
     private LocalDateTime paymentTimeStamp;
-    private String status;
+    @NotBlank
     private String mode;
+    @Pattern(regexp = "SUCCESS|FAILED")
+    private String status;
 
     public long getId() {
         return id;

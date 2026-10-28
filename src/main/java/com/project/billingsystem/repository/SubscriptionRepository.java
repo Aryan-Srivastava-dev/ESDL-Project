@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
     List<Subscription> findByCustomer_Id(long customerId);
+    boolean existsByCustomer_IdAndPlan_IdAndStatus(long customerId, long planId, String status);
 }
