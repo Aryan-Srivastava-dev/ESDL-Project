@@ -25,6 +25,10 @@ public class PaymentService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
 
+        if(invoice.getSubscription().getStatus().equals("CANCELLED")) {
+            throw new BusinessRuleException("Cannot pay for a cancelled subscription");
+        }
+
         if ("PAID".equals(invoice.getStatus())) {
             throw new BusinessRuleException("Invoice is already paid");
         }
