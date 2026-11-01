@@ -6,12 +6,11 @@ import com.project.billingsystem.service.InvoiceService;
 import com.project.billingsystem.service.SubscriptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/subscriptions")
 public class SubscriptionController {
     private final SubscriptionService subscriptionService;
